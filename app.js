@@ -1,10 +1,13 @@
 import express from "express";
 import readline from "readline";
 import Duren from "./DurenLogic.js";
+import routes from './routes/index.js '
 
 const app = express();
 const DurenGame = new Duren();
 const PORT = 3000;
+
+app.use('/api', routes)
 
 function printHands() {
     console.log("Karty pozostałe w talii:", DurenGame.playDeck.length);
