@@ -7,7 +7,7 @@
     "dev": "node --watch app.js"
   },
   "keywords": [],
-  "author": "", 
+  "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {

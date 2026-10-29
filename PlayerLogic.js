@@ -1,6 +1,6 @@
-export default class Player () {
-    constructor(){
-        this.Player = n
-        this.Hand = [];
+export default class Player {
+    constructor(name) {
+        this.name = name;
+        this.hand = [];
     }
 }
