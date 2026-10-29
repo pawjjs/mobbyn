@@ -5,15 +5,16 @@ export default class Duren {
         this.playDeck = this.createDeck();
         this.players = ["Bert", "Hubert", "Bubi"].map((name) => new Player(name));
         this.currentPlayerIndex = 0;
+        this.playersLeft = this.players;
         this.deal();
     }
 
     getCurrentPlayer() {
-        return this.players[this.currentPlayerIndex];
+        return this.playersLeft[this.currentPlayerIndex];
     }
 
     skipTurn() {
-        this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.players.length;
+        this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.playersLeft.length;
     }
 
     discardAndDraw() {
@@ -56,5 +57,13 @@ export default class Duren {
             name: player.name,
             cards: [...player.hand],
         }));
+    }
+
+    duren(){
+        if (this.playersLeft.length === 1){
+            console.log(this.playersLeft[0].name + " jest durniem")
+            return true
+        }
+        return false
     }
 }

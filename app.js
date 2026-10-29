@@ -20,14 +20,16 @@ function printTurn() {
 
 printHands();
 printTurn();
-console.log('Komendy: "skip" | "wyrzuc i dobierz"');
+console.log('Komendy: "skip" | "wyrzuc"');
 
 function handleCommand(line) {
     const parts = line.trim().split(/\s+/);
     const command = parts[0]?.toLowerCase();
+    let player = DurenGame.getCurrentPlayer();
 
     if (command === "skip") {
         DurenGame.skipTurn();
+        player = DurenGame.getCurrentPlayer();
         printHands();
         printTurn();
         return;
@@ -35,11 +37,20 @@ function handleCommand(line) {
 
     if (command === "wyrzuc") {
         DurenGame.discardAndDraw();
-        const player = DurenGame.getCurrentPlayer();
         if (player.hand.length === 0) {
-            console.log("Wygrana:", player.name);
-            rl.close();
-            process.exit(0);
+            DurenGame.playersLeft.splice(DurenGame.currentPlayerIndex,1);
+            if (DurenGame.duren()){
+                return;
+            }
+            DurenGame.currentPlayerIndex %= DurenGame.playersLeft.length;
+        }
+        printHands();
+        printTurn();
+        return;
+    }
+    if (command === "wyjeb") {
+        for (let i = 0; i < 6; i++) {
+            DurenGame.discardAndDraw();
         }
         printHands();
         printTurn();
@@ -49,6 +60,7 @@ function handleCommand(line) {
     if (line.trim()) {
         console.log('Nieznana komenda. Użyj: "skip" lub "wyrzuc"');
     }
+
 }
 
 const rl = readline.createInterface({
