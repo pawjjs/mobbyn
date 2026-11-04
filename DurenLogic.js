@@ -14,6 +14,7 @@ export default class Duren {
     }
 
     skipTurn() {
+        if (this.playersLeft.length === 0) return;
         this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.playersLeft.length;
     }
 

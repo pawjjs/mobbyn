@@ -1,13 +1,30 @@
 import express from "express";
 import readline from "readline";
-import Duren from "./DurenLogic.js";
-import routes from './routes/index.js '
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
+import indexRoutes from './routes/index.js'
+import boardRoutes from './routes/board.js'
+import boardApiRoutes from './routes/board.api.js';
+
+import Duren from "./DurenLogic.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const DurenGame = new Duren();
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json())
 const PORT = 3000;
 
-app.use('/api', routes)
+app.use('/', indexRoutes)
+app.use('/board', boardRoutes)
+app.use('/api/board', boardApiRoutes);
+
+
+
+
+
+
+const DurenGame = new Duren();
 
 function printHands() {
     console.log("Karty pozostałe w talii:", DurenGame.playDeck.length);
