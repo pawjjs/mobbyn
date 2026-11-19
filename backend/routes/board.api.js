@@ -11,10 +11,14 @@ router.get('/turn', controller.getTurn);
 
 router.get('/info', controller.getInfo);
 
-router.post('/turn/skip/:index', controller.skipTurn);
-
-router.post('/turn/discar/:index', controller.discardAndDraw);
-
 router.post('/reset', controller.resetGame);
+
+router.post('/attack', controller.attackCard);
+
+router.post('/defend', controller.defendCard);
+
+router.post('/defense/end', controller.endDefense);
+
+router.post('/defense/surrender', controller.surrenderDefense);
 
 export default router;

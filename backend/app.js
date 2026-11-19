@@ -10,7 +10,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json())
-const PORT = 3000;
+const PORT = 2137;
 
 app.use('/', indexRoutes)
 app.use('/board', boardRoutes)

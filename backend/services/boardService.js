@@ -8,24 +8,43 @@ export const getPlayers = () => DurenGame.playersLeft;
 
 export const getTurn = () => ({
     index: DurenGame.currentPlayerIndex,
-    name: DurenGame.getCurrentPlayer().name,
+    name: DurenGame.getCurrentPlayer()?.name ?? null,
+    phase: DurenGame.phase,
+    attackerIndex: DurenGame.attackerIndex,
+    attacker: DurenGame.getAttacker()?.name ?? null,
+    defenderIndex: DurenGame.defenderIndex,
+    defender: DurenGame.getDefender()?.name ?? null,
 });
 
 export const getInfo = () => DurenGame.getInfo();
 
-export const skipTurn = (playerIndex) => {
-    if (playerIndex != DurenGame.currentPlayerIndex) return null;
+export const attackCard = (playerIndex, card) => {
+    if (playerIndex !== DurenGame.currentPlayerIndex || DurenGame.phase !== "attack") {
+        return null;
+    }
+    if (!DurenGame.attack(card)) return null;
+    return getInfo();
+};
 
-    DurenGame.skipTurn();
-    return getTurn();
-}
+export const defendCard = (playerIndex, card) => {
+    if (playerIndex !== DurenGame.currentPlayerIndex || DurenGame.phase !== "defend") {
+        return null;
+    }
+    if (!DurenGame.defend(card)) return null;
+    return getInfo();
+};
 
-export const discardAndDraw = (playerIndex) =>{
-    if (playerIndex != DurenGame.currentPlayerIndex) return null;
+export const endDefense = (playerIndex) => {
+    if (playerIndex !== DurenGame.defenderIndex) return null;
+    if (!DurenGame.endDefense()) return null;
+    return getInfo();
+};
 
-    DurenGame.discardAndDraw();
-    return { players: getPlayers(), deck: gettAll() };
-}
+export const surrenderDefense = (playerIndex) => {
+    if (playerIndex !== DurenGame.defenderIndex) return null;
+    if (!DurenGame.surrenderDefense()) return null;
+    return getInfo();
+};
 
 export const resetGame = () => {
     DurenGame.reset();

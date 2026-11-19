@@ -8,28 +8,44 @@ export default class Duren {
         this.players = ["Bert", "Hubert", "Bubi"].map((name) => new Player(name));
         this.playersLeft = this.players;
         this.currentPlayerIndex = 0;
+        this.attackerIndex = 0;
+        this.defenderIndex = 0;
+        this.phase = "attack";
 
         this.playDeck = [];
         this.remainingCards = 0;
         this.kozyrCard = null;
         this.kozyr = null;
-        this.table = [];
+        this.attackStack = [];
+        this.defenceStack = [];
+        this.table = [this.attackStack, this.defenceStack];
 
         this.createDeck();
         this.getKozyr();
         this.deal();
-    }
-
-    playerAt(index) {
-        return this.playersLeft[index] ?? null;
+        this.attackerIndex = this.currentPlayerIndex;
+        this.defenderIndex = this.nextPlayer(this.currentPlayerIndex);
+        
     }
 
     getCurrentPlayer() {
         return this.playerAt(this.currentPlayerIndex);
     }
 
+    getDefender() {
+        return this.playerAt(this.defenderIndex);
+    }
+
+    getAttacker() {
+        return this.playerAt(this.attackerIndex);
+    }
+
     playersLeftCount() {
         return this.playersLeft.length;
+    }
+
+    playerAt(index) {
+        return this.playersLeft[index] ?? null;
     }
 
     nextPlayer(index) {
@@ -38,20 +54,30 @@ export default class Duren {
         return (index + 1) % n;
     }
 
-    skipTurn() {
-        if (this.playersLeft.length === 0) return;
-        this.currentPlayerIndex = this.nextPlayer(this.currentPlayerIndex);
+    updateTable() {
+        this.table = [this.attackStack, this.defenceStack];
     }
 
-    discardAndDraw() {
-        const player = this.getCurrentPlayer();
-        if (!player || player.hand.length === 0) return;
+    tableClear() {
+        this.attackStack.length = 0;
+        this.defenceStack.length = 0;
+        this.updateTable();
+    }
 
-        player.hand.splice(0, 1);
-        if (this.playDeck.length > 0) {
-            const drawn = this.drawFromDeck();
-            if (drawn) player.hand.push(drawn);
-        }
+    Defending() {
+        return this.attackStack.length > this.defenceStack.length;
+    }
+
+    allDefended() {
+        return (
+            this.attackStack.length > 0 &&
+            this.attackStack.length === this.defenceStack.length
+        );
+    }
+
+    defendAttackCard() {
+        if (!this.Defending()) return null;
+        return this.attackStack[this.defenceStack.length];
     }
 
     rankValue(rank) {
@@ -65,8 +91,10 @@ export default class Duren {
     canBeat(attack, defence) {
         if (!attack || !defence) return false;
 
-        if (!isKozyr(attack) && isKozyr(defence)) return true;
-        if (attack.s == defence.s) return this.rankValue(attack.r) < this.rankValue(defence.r);
+        if (!this.isKozyr(attack) && this.isKozyr(defence)) return true;
+        if (attack.s === defence.s) {
+            return this.rankValue(attack.r) < this.rankValue(defence.r);
+        }
         return false;
     }
 
@@ -82,7 +110,7 @@ export default class Duren {
             let j = Math.floor(Math.random()*52);
             let tmp = _deck[i];
             _deck[i] = _deck[j];
-            _deck[j] = tmp; 
+            _deck[j] = tmp;
         }
     }
 
@@ -115,6 +143,84 @@ export default class Duren {
         }));
     }
 
+    removeFromHand(player, card) {
+        const index = player.hand.findIndex(
+            (c) => c.s === card.s && c.r === card.r
+        );
+        if (index === -1) return null;
+        return player.hand.splice(index, 1)[0];
+    }
+
+    attack(card) {
+        if (this.phase !== "attack") return false;
+        if (this.currentPlayerIndex !== this.attackerIndex) return false;
+        if (this.Defending()) return false;
+
+        const player = this.getAttacker();
+        const played = this.removeFromHand(player, card);
+        if (!played) return false;
+        if (this.attackStack.length === 0) {
+            this.attackerIndex = this.currentPlayerIndex;
+            this.defenderIndex = this.nextPlayer(this.attackerIndex);
+        }
+
+        this.attackStack.push(played);
+        this.updateTable();
+        this.phase = "defend";
+        this.currentPlayerIndex = this.defenderIndex;
+        return true;
+    }
+
+    defend(card) {
+        if (this.phase !== "defend") return false;
+        if (this.currentPlayerIndex !== this.defenderIndex) return false;
+
+        const attackCard = this.defendAttackCard();
+        if (!attackCard) return false;
+
+        const player = this.getDefender();
+        const played = this.removeFromHand(player, card);
+        if (!played) return false;
+        if (!this.canBeat(attackCard, played)) {
+            player.hand.push(played);
+            return false;
+        }
+
+        this.defenceStack.push(played);
+        this.updateTable();
+        return true;
+    }
+
+    endDefense() {
+        if (this.phase !== "defend") return false;
+        if (this.currentPlayerIndex !== this.defenderIndex) return false;
+        if (!this.allDefended()) return false;
+
+        const winner = this.defenderIndex;
+        this.tableClear();
+        this.phase = "attack";
+        this.currentPlayerIndex = winner;
+        this.attackerIndex = winner;
+        this.defenderIndex = this.nextPlayer(this.attackerIndex);
+        return true;
+    }
+
+    surrenderDefense() {
+        if (this.phase !== "defend") return false;
+        if (this.currentPlayerIndex !== this.defenderIndex) return false;
+        if (this.attackStack.length === 0) return false;
+
+        const defender = this.getDefender();
+        defender.hand.push(...this.attackStack, ...this.defenceStack);
+        this.tableClear();
+
+        this.phase = "attack";
+        this.currentPlayerIndex = this.nextPlayer(this.defenderIndex);
+        this.attackerIndex = this.currentPlayerIndex ;
+        this.defenderIndex = this.nextPlayer(this.attackerIndex);
+        return true;
+    }
+
     getInfo() {
         const current = this.getCurrentPlayer();
         return {
@@ -123,6 +229,13 @@ export default class Duren {
             remainingCards: this.remainingCards,
             currentPlayerIndex: this.currentPlayerIndex,
             currentPlayer: current?.name ?? null,
+            attackerIndex: this.attackerIndex,
+            attacker: this.getAttacker()?.name ?? null,
+            defenderIndex: this.defenderIndex,
+            defender: this.getDefender()?.name ?? null,
+            phase: this.phase,
+            table: this.table,
+            canEndDefense: this.phase === "defend" && this.allDefended(),
         };
     }
 
@@ -132,10 +245,15 @@ export default class Duren {
         }
         this.playersLeft = this.players;
         this.currentPlayerIndex = 0;
-        this.table.length = 0;
+        this.phase = "attack";
+        this.attackStack.length = 0;
+        this.defenceStack.length = 0;
+        this.updateTable();
         this.createDeck();
         this.getKozyr();
         this.deal();
+        this.attackerIndex = this.currentPlayerIndex;
+        this.defenderIndex = this.nextPlayer(this.currentPlayerIndex);
     }
 
     duren() {
