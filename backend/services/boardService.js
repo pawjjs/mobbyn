@@ -1,4 +1,4 @@
-import Duren from '../DurenLogic.js'
+import Duren from '../game/DurenLogic.js'
 
 const DurenGame = new Duren();
 
@@ -11,16 +11,28 @@ export const getTurn = () => ({
     name: DurenGame.getCurrentPlayer().name,
 });
 
+export const getInfo = () => DurenGame.getInfo();
+
 export const skipTurn = (playerIndex) => {
     if (playerIndex != DurenGame.currentPlayerIndex) return null;
 
-    DurenGame.skipTurn()
+    DurenGame.skipTurn();
     return getTurn();
 }
 
 export const discardAndDraw = (playerIndex) =>{
     if (playerIndex != DurenGame.currentPlayerIndex) return null;
 
-    DurenGame.discardAndDraw()
-    return getPlayers(), gettAll();
+    DurenGame.discardAndDraw();
+    return { players: getPlayers(), deck: gettAll() };
+}
+
+export const resetGame = () => {
+    DurenGame.reset();
+    return {
+        turn: getTurn(),
+        info: getInfo(),
+        players: getPlayers(),
+        deck: gettAll(),
+    };
 }

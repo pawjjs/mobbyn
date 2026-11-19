@@ -1,4 +1,5 @@
 const turnDiv = document.getElementById("turn")
+const infoDiv = document.getElementById("info")
 const card_list = document.getElementById("cards");
 const playersDiv = document.getElementById("players")
 
@@ -26,6 +27,36 @@ function renderTurn(turn){
     turn_h.className = 'turn header';
     turn_h.textContent = `Tura gracza ${turn.name}`;
     turnDiv.appendChild(turn_h);
+}
+
+async function loadInfo() {
+    if (!infoDiv) return;
+    try {
+        const res = await fetch('/api/board/info');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const info = await res.json();
+        renderInfo(info);
+    } catch (err) {
+        infoDiv.textContent = "Info not loaded";
+        console.error(err);
+    }
+}
+
+function renderInfo(info) {
+    infoDiv.replaceChildren();
+    if (!info) return;
+
+    const lines = [
+        `Kozyr: ${info.kozyr ?? "-"}`,
+        `Kart w talii: ${info.remainingCards}`,
+        `Tura: ${info.currentPlayer ?? "-"}`,
+    ];
+
+    for (const text of lines) {
+        const p = document.createElement("p");
+        p.textContent = text;
+        infoDiv.appendChild(p);
+    }
 }
 
 
@@ -73,7 +104,7 @@ function renderPlayers(players){
     playersDiv.replaceChildren();
 
     if (players.length === 0) {
-        gamer_list.textContent = 'No players';
+        playersDiv.textContent = 'No players';
         return;
     } 
 
@@ -124,6 +155,7 @@ async function skipTurn(playerIndex) {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
         await loadTurn();
+        await loadInfo();
     } catch (err) {
         console.error('skip failed:', err);
     }
@@ -138,12 +170,33 @@ async function discardAndDraw(playerIndex) {
         }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        await loadPlayers(), loadCards();
+        await loadPlayers();
+        await loadCards();
+        await loadInfo();
     } catch (err) {
         console.error('discard failed:', err);
     }
 }
 
+async function resetGame() {
+    try {
+        const res = await fetch('/api/board/reset', { method: 'POST' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        await loadTurn();
+        await loadInfo();
+        await loadPlayers();
+        await loadCards();
+    } catch (err) {
+        console.error('reset failed:', err);
+    }
+}
+
+const resetBtn = document.getElementById('reset_game');
+if (resetBtn) {
+    resetBtn.addEventListener('click', resetGame);
+}
+
 loadTurn()
+loadInfo()
 loadPlayers()
 loadCards()

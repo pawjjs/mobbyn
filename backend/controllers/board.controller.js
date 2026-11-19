@@ -20,6 +20,10 @@ export const getTurn = (req, res) => {
     res.json(boardService.getTurn());
 }
 
+export const getInfo = (req, res) => {
+    res.json(boardService.getInfo());
+}
+
 export const skipTurn = (req, res) => {
     const turn = boardService.skipTurn(Number(req.params.index));
 
@@ -34,6 +38,10 @@ export const discardAndDraw = (req, res) => {
     if (discard === null) return res.status(403).json({ error: 'not your turn' });
 
     res.json(discard);
+}
+
+export const resetGame = (req, res) => {
+    res.json(boardService.resetGame());
 }
 
 
