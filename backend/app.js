@@ -1,5 +1,6 @@
 import express from "express";
 import path from "node:path";
+import cors from 'cors';
 import { fileURLToPath } from "node:url";
 
 import indexRoutes from './routes/index.js'
@@ -10,6 +11,11 @@ import Duren from "./DurenLogic.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+app.use(
+    cors({
+        origin: 'http://localhost:5173'
+    })
+)
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json())
 const PORT = 3000;
