@@ -29,7 +29,7 @@ export default class Duren {
     }
 
     createDeck() {
-        const suits = ['wino', 'kier', 'pik', 'trefl'];
+        const suits = ['karo', 'kier', 'pik', 'trefl'];
         const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
         const deck = suits.flatMap(s => ranks.map(r => ({s, r})));
         this.shuffle(deck);
