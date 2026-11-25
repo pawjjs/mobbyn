@@ -8,6 +8,8 @@ import boardApiRoutes from './routes/board.api.js';
 
 import Duren from "./DurenLogic.js";
 
+import { pool } from "./db.js"
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(express.static(path.join(__dirname, 'public')));
